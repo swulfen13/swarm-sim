@@ -95,6 +95,9 @@ belohnung:
   energie: -0.00005                 # pro Schritt und Drohne (mitskaliert)
   akku_reserve: -0.1                # exp3: zurueck auf Baseline (exp2 -0.2 verschaerfte die Park-Falle).
   staffel_bonus: 0.0                # exp1 (0.04) deaktiviert: reichte nicht (ready blieb ~0, Park-Falle).
+  blackout_strafe: -0.4             # exp6: harte geteilte Strafe bei Team-Abdeckung ~0 (Totalausfall).
+  blackout_schwelle: 0.15           # exp6: Hinge waechst linear unter 15 % Abdeckung bis max bei 0 %.
+                                    # Macht kollektiven Einbruch teuer -> Druck, nie alle gleichzeitig leerzulaufen.
 
 # WICHTIG: episoden_min (Episodenlaenge) ist bewusst viel groesser als
 # akku_flugdauer_min (Akku-Laufzeit). So muss eine Drohne pro Episode MEHRMALS

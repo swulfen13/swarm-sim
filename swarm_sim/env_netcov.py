@@ -109,6 +109,8 @@ class NetCovEnv:
         self.r_energy = float(r["energie"])
         self.r_reserve = float(r.get("akku_reserve", 0.0))             # Strafe unter Sicherheitsreserve
         self.r_staffel = float(r.get("staffel_bonus", 0.0))            # exp1: Bonus fuer Anteil einsatzbereiter (geladener) Drohnen
+        self.r_blackout = float(r.get("blackout_strafe", 0.0))         # exp6: harte Strafe bei Team-Abdeckung ~0 (Totalausfall)
+        self.blackout_thr = float(r.get("blackout_schwelle", 0.1))     # exp6: Schwelle, unter der der Blackout-Hinge greift
         self.reserve_pct = float(m.akku["sicherheitsreserve_prozent"])
         # Station
         self.charge_radius = 150.0  # m, Annahme: Naehe zur Station zum Laden
@@ -413,12 +415,15 @@ class NetCovEnv:
         # Belohnt, immer ein paar geladene Drohnen in Reserve zu halten -> gegen kollektives Leerlaufen.
         ready = (self.battery >= self.reserve_pct) & self.alive                                   # (E,A)
         ready_frac = ready.float().sum(1, keepdim=True) / self.alive.float().sum(1, keepdim=True).clamp(min=1)  # (E,1) geteilt
+        # exp6 Blackout-Hinge: waechst linear von 0 (Abdeckung>=Schwelle) auf 1 (Abdeckung=0), geteilt pro Arena.
+        blackout = ((self.blackout_thr - served_frac).clamp(min=0.0) / max(self.blackout_thr, 1e-6)).unsqueeze(1)  # (E,1)
         reward = (self.r_cov * local_cov                      # + eigener prioritaets-gew. Deckungsbeitrag
                   + self.r_hole * holes                       # - geteilte Funkloch-Strafe
                   + self.r_crash * crashed.float()            # - eigener Absturz
                   + self.r_coll * collided.float()            # - eigene Kollision
                   + self.r_reserve * shortfall * self.alive.float()   # - eigene Reserve-Unterschreitung
                   + self.r_staffel * ready_frac * self.alive.float()  # + geteilter Staffel-Bonus (exp1)
+                  + self.r_blackout * blackout                # - geteilte Blackout-Strafe (exp6)
                   + self.r_energy * self.alive.float())       # - eigene Energie            -> (E,A)
 
         self.t_step += 1

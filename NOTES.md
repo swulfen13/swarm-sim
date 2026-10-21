@@ -88,6 +88,25 @@ also EINE Episode, die abläuft: voller Akku beim Reset → versorgen → nach ~
 
 ---
 
+## 2026-10-21 (nachts) – Voll-autonomer Loop (Nutzer: "nichts mehr machen, Recap am Ende")
+
+Loop auf voll autonom umgestellt: längere Läufe, Entscheidungen ohne Rückfrage,
+committen + pushen nach jedem Experiment, Recap am Ende.
+
+**exp5 – Horizont-Fix** (`gamma` 0.997 → 0.9995 ≈ Horizont 33 s → 200 s;
+`rollout_len` 32 → 64; exp4-Obs bleiben). 2000 Updates. → **bester Lauf, aber
+Sägezahn bleibt.** served ⌀ 11,3 % (Bestwert), Spitzen 79 %, `frac_batt_empty`
+0,05, Kollaps noch 44 %. Deutung: Horizont ~200 s half, ist aber < Akku 480 s →
+Laden immer noch zu weit weg. gamma allein reicht nicht (höher = zu viel Varianz).
+
+**exp6 – Kontinuitäts-/Blackout-Reward** (zusätzlich zum exp5-Setup): harte
+geteilte Strafe, wenn Team-Abdeckung unter Schwelle fällt (`blackout_strafe`,
+Hinge unter `blackout_schwelle`). Macht den Totalausfall teuer statt nur einzelne
+Funklöcher → direkter Druck, die Abdeckung NIE ganz einbrechen zu lassen = gestaffelt
+laden. 3000 Updates. → Lauf gestartet.
+
+---
+
 ## 2026-10-21 – Repo aufgesetzt, Stand dokumentiert
 
 **Was gemacht**
