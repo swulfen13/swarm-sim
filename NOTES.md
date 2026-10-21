@@ -25,8 +25,23 @@ Reserve). 1000 Updates, Stufe 1, frischer Start. → **gescheitert, Sägezahn bl
   kurzfristig mehr zahlt.
 
 **exp2 – stärkere Reserve-Strafe + höhere Schwelle** (Staffel-Bonus aus;
-`akku_reserve` -0.1 → -0.2, `sicherheitsreserve_prozent` 35 → 45). Direkterer
-Druck, früher zur Station zu fliegen. → Lauf gestartet.
+`akku_reserve` -0.1 → -0.2, `sicherheitsreserve_prozent` 35 → 45). →
+**gescheitert, Sägezahn bleibt.** served (2. Hälfte) nur 4,2 %, Kollaps in 67 %.
+Neuer Charakter: Leer-Abstürze seltener (`frac_batt_empty` 0,05), aber Akku steigt
+in der Kollaps-Phase auf 89–100 % bei served ≈ 0 → **alle parken gleichzeitig
+voll an der Station**, niemand versorgt. Die stärkere Strafe hat die Park-Falle
+verschärft, nicht gestaffelt.
+
+**Diagnose nach exp1+exp2:** Das Problem ist Symmetrie, nicht Strafhöhe. Eine
+geteilte Policy (Parameter-Sharing) + synchroner Episoden-Reset → alle Drohnen
+tun gleichzeitig dasselbe (erst alle versorgen bis leer, dann alle laden). Es
+fehlt ein Mechanismus zur Aufteilung „du lädst / du versorgst".
+
+**exp3 – milderes Stufe-1** (Reward zurück auf Baseline: `akku_reserve` -0.1,
+`sicherheitsreserve_prozent` 35, Staffel-Bonus 0; Curriculum `stufe_1.hotspots`
+4 → 1). Station steht `beim_hotspot` → dieselbe Drohne kann versorgen UND laden,
+der Ladezyklus wird entdeckbar; spätere Stufen ziehen die Hotspots wieder hoch.
+Testet NUR die Curriculum-Änderung. → Lauf gestartet.
 
 ---
 

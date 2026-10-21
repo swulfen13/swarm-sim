@@ -26,7 +26,7 @@ akku:
   # Verbrauch pro Sekunde = basis * (1 + 0.004 * v^2) * (1 + 0.05 * wind_ms) * 1.1
   # basis = 100 % / (flugdauer_schwebeflug_min * 60), Faktor 1.1 = Funkmodul
   start_ladung_prozent: [40, 100] # zufaellig, damit nicht alle gleichzeitig laden muessen
-  sicherheitsreserve_prozent: 45   # exp2: hoeher (war 35), damit das Lade-Signal frueher kommt, solange die Station
+  sicherheitsreserve_prozent: 35   # exp3: zurueck auf Baseline (exp2 hatte 45), damit die Station
                                    # noch erreichbar ist (bei 10 % reicht die Restflugzeit oft nicht mehr)
   absturz_bei_prozent: 0
   # Rueckkehr-Schwelle NICHT festlegen, der Agent soll sie selbst lernen.
@@ -93,10 +93,8 @@ belohnung:
   absturz_leerer_akku: -0.5         # einmalig
   kollision: -0.3                   # einmalig
   energie: -0.00005                 # pro Schritt und Drohne (mitskaliert)
-  akku_reserve: -0.2                # exp2: staerker (war -0.1). Direkterer Druck, VOR dem Leerlaufen
-                                    # heimzufliegen; "leer weiter versorgen" lohnt sich noch weniger.
-  staffel_bonus: 0.0                # exp1 (0.04) deaktiviert: Zustand "geladen" zu belohnen reichte nicht
-                                    # (ready blieb ~0, Park-Falle). exp2 setzt stattdessen am Weg an.
+  akku_reserve: -0.1                # exp3: zurueck auf Baseline (exp2 -0.2 verschaerfte die Park-Falle).
+  staffel_bonus: 0.0                # exp1 (0.04) deaktiviert: reichte nicht (ready blieb ~0, Park-Falle).
 
 # WICHTIG: episoden_min (Episodenlaenge) ist bewusst viel groesser als
 # akku_flugdauer_min (Akku-Laufzeit). So muss eine Drohne pro Episode MEHRMALS
@@ -106,8 +104,9 @@ curriculum:
     episoden_min: 12              # 1.5x Akku -> haeufige Resets, kurze Tot-Phasen beim Lern-Kaltstart
     akku_flugdauer_min: 8         # zurueck auf echten Wert (Diagnose run12 bestaetigte: Abdeckung lernbar)
     drohnen: 6
-    hotspots: 4                   # run15: mehrere verteilte Hotspots -> 1 Drohne reicht NICHT mehr ->
-                                  # Schwarm erforderlich -> Drohnen am Leben halten (Rotation) wird belohnt
+    hotspots: 1                   # exp3: entschaerft (war 4). 1 Hotspot + Station beim_hotspot ->
+                                  # dieselbe Drohne versorgt UND laedt, der Ladezyklus wird entdeckbar.
+                                  # Stufe 2-4 ziehen die Hotspot-Zahl wieder hoch (Schwarm-Druck).
     stationen: 1
     wind_ms: 0
   stufe_2:
