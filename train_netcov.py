@@ -44,7 +44,10 @@ def train(cfg_path: str, num_envs: int, updates: int, start_stage: int,
     dev = env.device
     tcfg = TrainConfig()
     tcfg.total_updates = updates
-    tcfg.gamma = 0.997        # run10: laengerer Kredit-Horizont (~33s statt ~10s) fuer die Lade-Rotation
+    tcfg.gamma = 0.9995       # exp5: Horizont ~1/(1-g)=2000 Schritte ~200s (war 0.997 ~33s). Der Lade-Zyklus
+                              # dauert Minuten (Akku 480s) -> 33s war 15x zu kurz, Laden fuer den Agenten unsichtbar.
+    tcfg.rollout_len = 64     # exp5: laengere Rollouts (war 32) fuer stabilere GAE-Wertschaetzung ueber den
+                              # laengeren Horizont.
 
     net = AttnActorCritic(env.entity_dim, env.self_global_dim, env.team_global_dim,
                           NUM_ACTIONS, hidden=tcfg.hidden).to(dev)
