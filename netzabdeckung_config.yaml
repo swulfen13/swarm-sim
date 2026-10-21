@@ -26,7 +26,7 @@ akku:
   # Verbrauch pro Sekunde = basis * (1 + 0.004 * v^2) * (1 + 0.05 * wind_ms) * 1.1
   # basis = 100 % / (flugdauer_schwebeflug_min * 60), Faktor 1.1 = Funkmodul
   start_ladung_prozent: [40, 100] # zufaellig, damit nicht alle gleichzeitig laden muessen
-  sicherheitsreserve_prozent: 35   # run9: hoeher, damit das Lade-Signal kommt, solange die Station
+  sicherheitsreserve_prozent: 45   # exp2: hoeher (war 35), damit das Lade-Signal frueher kommt, solange die Station
                                    # noch erreichbar ist (bei 10 % reicht die Restflugzeit oft nicht mehr)
   absturz_bei_prozent: 0
   # Rueckkehr-Schwelle NICHT festlegen, der Agent soll sie selbst lernen.
@@ -93,12 +93,10 @@ belohnung:
   absturz_leerer_akku: -0.5         # einmalig
   kollision: -0.3                   # einmalig
   energie: -0.00005                 # pro Schritt und Drohne (mitskaliert)
-  akku_reserve: -0.1                # run9: staerker (0 oberhalb 35 % -> kein Park-Anreiz; bis -0.1 bei leer),
-                                    # damit "leer weiter versorgen" sich nicht mehr lohnt -> Lade-Rotation.
-  staffel_bonus: 0.04               # exp1: + pro Schritt, geteilt, mal Anteil Drohnen UEBER Reserve.
-                                    # Belohnt gestaffeltes Laden (immer ein paar geladene in Reserve) statt
-                                    # kollektivem Leerlaufen. Kleiner als versorgte_kapazitaet (0.1), damit
-                                    # Versorgen weiter lohnt und nicht alle nur an der Station parken.
+  akku_reserve: -0.2                # exp2: staerker (war -0.1). Direkterer Druck, VOR dem Leerlaufen
+                                    # heimzufliegen; "leer weiter versorgen" lohnt sich noch weniger.
+  staffel_bonus: 0.0                # exp1 (0.04) deaktiviert: Zustand "geladen" zu belohnen reichte nicht
+                                    # (ready blieb ~0, Park-Falle). exp2 setzt stattdessen am Weg an.
 
 # WICHTIG: episoden_min (Episodenlaenge) ist bewusst viel groesser als
 # akku_flugdauer_min (Akku-Laufzeit). So muss eine Drohne pro Episode MEHRMALS

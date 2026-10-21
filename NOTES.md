@@ -5,6 +5,31 @@ Lösungen · Offene Fragen.
 
 ---
 
+## 2026-10-21 (abends) – Auto-Loop: Experimente gegen den Sägezahn
+
+Ziel: der Schwarm soll gestaffeltes Nachladen lernen (nicht alle Akkus
+gleichzeitig leer). Vorab freigegebene Experiment-Leiter, der Loop arbeitet sie
+ab und misst den Sägezahn objektiv (Skript: Anteil Updates mit kollektiv leerem
+Akku + Versorgungs-Kollaps, mittlere Abdeckung in der 2. Lauf-Hälfte).
+
+Baseline-Referenz: run15 – `served` schwingt 0–30 %, Akku kippt regelmäßig auf
+0 %, Erholung erst beim Reset.
+
+**exp1 – Staffel-Bonus** (`staffel_bonus: 0.04`, geteilt, × Anteil Drohnen über
+Reserve). 1000 Updates, Stufe 1, frischer Start. → **gescheitert, Sägezahn bleibt.**
+- served (2. Hälfte) im Schnitt nur 5,6 %, Kollaps in 62 % der Updates, Akku weiter 0 %.
+- `ready` ≈ 0,06: der Schwarm hält fast nie Reserven → Bonus wird kaum verdient,
+  zu wenig Gradient. Zeitweise Park-Falle (Akku ~90 %, aber served ≈ 0, Überlebende
+  parken geladen). Warum: der Bonus belohnt den *Zustand* „geladen", erzeugt aber
+  keinen Anreiz für den *Weg* dahin (rechtzeitig heimfliegen), solange Versorgen
+  kurzfristig mehr zahlt.
+
+**exp2 – stärkere Reserve-Strafe + höhere Schwelle** (Staffel-Bonus aus;
+`akku_reserve` -0.1 → -0.2, `sicherheitsreserve_prozent` 35 → 45). Direkterer
+Druck, früher zur Station zu fliegen. → Lauf gestartet.
+
+---
+
 ## 2026-10-21 – Repo aufgesetzt, Stand dokumentiert
 
 **Was gemacht**
