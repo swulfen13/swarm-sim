@@ -107,6 +107,7 @@ class NetCovEnv:
         self.r_coll = float(r["kollision"])
         self.r_energy = float(r["energie"])
         self.r_reserve = float(r.get("akku_reserve", 0.0))             # Strafe unter Sicherheitsreserve
+        self.r_staffel = float(r.get("staffel_bonus", 0.0))            # exp1: Bonus fuer Anteil einsatzbereiter (geladener) Drohnen
         self.reserve_pct = float(m.akku["sicherheitsreserve_prozent"])
         # Station
         self.charge_radius = 150.0  # m, Annahme: Naehe zur Station zum Laden
@@ -407,11 +408,16 @@ class NetCovEnv:
         local_cov = (covers.float() * hs_w).sum(dim=2)                                      # (E,A) eigener Beitrag
         holes = (hole.float() * prio_norm).sum(dim=1, keepdim=True)                         # (E,1) geteilt
         shortfall = (self.reserve_pct - self.battery).clamp(min=0.0) / max(self.reserve_pct, 1e-6)  # (E,A)
+        # exp1 Staffel-Bonus: Anteil ALIVE-Drohnen UEBER der Reserve (= einsatzbereit), geteilt pro Arena.
+        # Belohnt, immer ein paar geladene Drohnen in Reserve zu halten -> gegen kollektives Leerlaufen.
+        ready = (self.battery >= self.reserve_pct) & self.alive                                   # (E,A)
+        ready_frac = ready.float().sum(1, keepdim=True) / self.alive.float().sum(1, keepdim=True).clamp(min=1)  # (E,1) geteilt
         reward = (self.r_cov * local_cov                      # + eigener prioritaets-gew. Deckungsbeitrag
                   + self.r_hole * holes                       # - geteilte Funkloch-Strafe
                   + self.r_crash * crashed.float()            # - eigener Absturz
                   + self.r_coll * collided.float()            # - eigene Kollision
                   + self.r_reserve * shortfall * self.alive.float()   # - eigene Reserve-Unterschreitung
+                  + self.r_staffel * ready_frac * self.alive.float()  # + geteilter Staffel-Bonus (exp1)
                   + self.r_energy * self.alive.float())       # - eigene Energie            -> (E,A)
 
         self.t_step += 1
@@ -426,6 +432,7 @@ class NetCovEnv:
             "collisions_per_step": collided.float().sum(1).mean().item(),
             "charging_now": charging.float().sum(1).mean().item(),
             "mean_battery": ((self.battery * alive_fr).sum() / alive_fr.sum().clamp(min=1)).item(),
+            "ready_frac": ready_frac.mean().item(),
             "alive_frac": alive_fr.mean().item(),
             "holes_frac": (hole.float().sum(1) / self.hs_active.float().sum(1).clamp(min=1)).mean().item(),
             "wind_ms": wind_mag.mean().item(),

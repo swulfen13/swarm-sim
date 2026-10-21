@@ -95,6 +95,10 @@ belohnung:
   energie: -0.00005                 # pro Schritt und Drohne (mitskaliert)
   akku_reserve: -0.1                # run9: staerker (0 oberhalb 35 % -> kein Park-Anreiz; bis -0.1 bei leer),
                                     # damit "leer weiter versorgen" sich nicht mehr lohnt -> Lade-Rotation.
+  staffel_bonus: 0.04               # exp1: + pro Schritt, geteilt, mal Anteil Drohnen UEBER Reserve.
+                                    # Belohnt gestaffeltes Laden (immer ein paar geladene in Reserve) statt
+                                    # kollektivem Leerlaufen. Kleiner als versorgte_kapazitaet (0.1), damit
+                                    # Versorgen weiter lohnt und nicht alle nur an der Station parken.
 
 # WICHTIG: episoden_min (Episodenlaenge) ist bewusst viel groesser als
 # akku_flugdauer_min (Akku-Laufzeit). So muss eine Drohne pro Episode MEHRMALS

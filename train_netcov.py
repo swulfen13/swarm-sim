@@ -166,6 +166,7 @@ def train(cfg_path: str, num_envs: int, updates: int, start_stage: int,
             stats["netcov/collisions_per_step"] = acc.get("collisions_per_step", 0.0) / R
             stats["netcov/charging_now"] = acc.get("charging_now", 0.0) / R
             stats["netcov/mean_battery_pct"] = acc.get("mean_battery", 0.0) / R
+            stats["netcov/ready_frac"] = acc.get("ready_frac", 0.0) / R
             stats["netcov/wind_ms"] = acc.get("wind_ms", 0.0) / R
             stats["curriculum/stage"] = float(stage)
             log.log(stats, global_step)
@@ -186,7 +187,7 @@ def train(cfg_path: str, num_envs: int, updates: int, start_stage: int,
                 print(f"Update {update:4d} | Stufe {stage} | served {served:5.1f}% "
                       f"| conn {stats['netcov/connected_frac']:.2f} | holes {stats['netcov/holes_frac']:.2f} "
                       f"| crash {stats['netcov/crashes_per_step']:.3f} | batt {stats['netcov/mean_battery_pct']:.0f}% "
-                      f"| {sps:,.0f} steps/s")
+                      f"| ready {stats['netcov/ready_frac']:.2f} | {sps:,.0f} steps/s")
 
             if update % tcfg.ckpt_every == 0:
                 ckpt_dir.mkdir(parents=True, exist_ok=True)
