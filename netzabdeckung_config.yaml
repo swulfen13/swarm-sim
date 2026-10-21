@@ -1,0 +1,146 @@
+# Mission "Netzabdeckung" - Beispielwerte fuer die Simulation
+# Alle Werte sind Richtwerte zum Starten, keine Herstellerdaten.
+# Alles als Parameter halten, nichts hart im Code festschreiben.
+
+simulation:
+  physik_hz: 50
+  steuerung_hz: 10
+  episodenlaenge_min: 60          # simulierte Zeit pro Episode, spaeter 240
+  parallele_umgebungen: 1024      # auf der GPU gleichzeitig
+  karte:
+    groesse_km: [2, 2]            # TEST run4: kleiner -> Drohnen koennen sich leicht verketten (Funk 3km > Karte)
+    flughoehe_m: [60, 120]
+    zufallskarten: true
+
+drohne:
+  anzahl_training: [12, 20]       # pro Episode zufaellig
+  masse_kg: 2.5
+  reisegeschwindigkeit_ms: 10
+  max_geschwindigkeit_ms: 15
+  max_beschleunigung_ms2: 5
+  max_windtoleranz_ms: 12
+  ausfallrate_pro_stunde: 0.02    # zufaelliger Totalausfall
+
+akku:
+  flugdauer_schwebeflug_min: 35   # realistischer Wert, im Curriculum anfangs viel kuerzer
+  # Verbrauch pro Sekunde = basis * (1 + 0.004 * v^2) * (1 + 0.05 * wind_ms) * 1.1
+  # basis = 100 % / (flugdauer_schwebeflug_min * 60), Faktor 1.1 = Funkmodul
+  start_ladung_prozent: [40, 100] # zufaellig, damit nicht alle gleichzeitig laden muessen
+  sicherheitsreserve_prozent: 35   # run9: hoeher, damit das Lade-Signal kommt, solange die Station
+                                   # noch erreichbar ist (bei 10 % reicht die Restflugzeit oft nicht mehr)
+  absturz_bei_prozent: 0
+  # Rueckkehr-Schwelle NICHT festlegen, der Agent soll sie selbst lernen.
+  # Als Orientierung fuer Tests: ca. 30 % plus Distanz zur Station.
+
+ladestation:
+  anzahl: [2, 3]
+  plaetze_pro_station: 3
+  ladezeit_0_auf_100_min: 45
+  schnellladung_20_auf_80_min: 25
+  akkutausch_min: 3               # Alternative, per Schalter aktivierbar
+  lademodus: tausch               # voll | schnell | tausch  -> steuert die effektive Ladezeit
+  position: beim_hotspot          # run13: Station direkt beim Hotspot -> Drohne laedt beim Versorgen,
+                                  # entdeckt so das Laden. Spaeter schrittweise weiter weg (echte Rotation).
+                                  # Optionen: kartenrand_zufaellig | zufaellig | beim_hotspot
+
+funk:
+  versorgungsradius_boden_m: 700    # run15: kleiner -> eine Drohne deckt nicht die ganze Karte ab,
+                                    # mehrere verteilte Hotspots brauchen mehrere Drohnen (Schwarm-Druck)
+  verbindung_drohne_drohne_m: 3000
+  signalstaerke: "max(0, 1 - (d / reichweite)^2)"
+  min_signalstaerke_fuer_verbindung: 0.2
+  hindernis_daempfung: 0.5          # Faktor auf die Signalstaerke pro blockierendem Hindernis
+  kapazitaet_pro_drohne_mbit: 150
+  max_nutzer_pro_drohne: 200
+  kapazitaetsverlust_pro_hop_prozent: 15
+  uplink:
+    anzahl: 1                       # z. B. Satellit oder noch funktionierender Netzknoten
+    kapazitaet_mbit: 200
+    position: zufaellig
+
+bedarf:
+  hotspots_anzahl: [5, 8]
+  neu_verteilen_alle_min: [10, 30]  # Bedarf aendert sich waehrend der Episode
+  typen:
+    notunterkunft:
+      nutzer: [100, 400]
+      mbit_pro_nutzer: 1
+      prioritaet: 1.0
+    einsatzleitung:
+      nutzer: [10, 50]
+      mbit_pro_nutzer: 5
+      prioritaet: 5.0
+    krankenhaus:
+      nutzer: [30, 150]
+      mbit_pro_nutzer: 2
+      prioritaet: 3.0
+    wandernde_menge:
+      nutzer: [50, 200]
+      mbit_pro_nutzer: 1
+      prioritaet: 1.0
+      geschwindigkeit_ms: [1, 2]
+
+umwelt:
+  wind_ms: [0, 10]
+  boeen_ms: [0, 15]                 # kurze Spitzen
+  boeen_wahrscheinlichkeit_pro_min: 0.1
+
+belohnung:
+  # ~30x kleiner als urspruenglich, damit die Wert-Ziele (gamma 0.99 ~100 Schritte)
+  # in einer Groessenordnung bleiben, die der Critic stabil fitten kann (sonst divergiert loss/value).
+  versorgte_kapazitaet: 0.1         # pro Schritt & Drohne: eigener prioritaets-gew. Deckungsbeitrag
+  funkloch_prioritaets_hotspot: -0.15  # pro Schritt, geteilt, ohne Uplink-Versorgung
+  absturz_leerer_akku: -0.5         # einmalig
+  kollision: -0.3                   # einmalig
+  energie: -0.00005                 # pro Schritt und Drohne (mitskaliert)
+  akku_reserve: -0.1                # run9: staerker (0 oberhalb 35 % -> kein Park-Anreiz; bis -0.1 bei leer),
+                                    # damit "leer weiter versorgen" sich nicht mehr lohnt -> Lade-Rotation.
+
+# WICHTIG: episoden_min (Episodenlaenge) ist bewusst viel groesser als
+# akku_flugdauer_min (Akku-Laufzeit). So muss eine Drohne pro Episode MEHRMALS
+# zum Laden/Tauschen - nur dann kann der Agent das Laden ueberhaupt lernen.
+curriculum:
+  stufe_1:
+    episoden_min: 12              # 1.5x Akku -> haeufige Resets, kurze Tot-Phasen beim Lern-Kaltstart
+    akku_flugdauer_min: 8         # zurueck auf echten Wert (Diagnose run12 bestaetigte: Abdeckung lernbar)
+    drohnen: 6
+    hotspots: 4                   # run15: mehrere verteilte Hotspots -> 1 Drohne reicht NICHT mehr ->
+                                  # Schwarm erforderlich -> Drohnen am Leben halten (Rotation) wird belohnt
+    stationen: 1
+    wind_ms: 0
+  stufe_2:
+    episoden_min: 20
+    akku_flugdauer_min: 10
+    drohnen: 10
+    hotspots: 3
+    stationen: 2
+    wind_ms: [0, 5]
+  stufe_3:
+    episoden_min: 30
+    akku_flugdauer_min: 12
+    drohnen: [12, 20]
+    hotspots: [5, 8]
+    stationen: [2, 3]
+    wind_ms: [0, 10]
+    ausfaelle: true
+    wechselnder_bedarf: true
+  stufe_4:
+    episoden_min: 40
+    akku_flugdauer_min: 15
+    zufallskarten_mit_hindernissen: true
+    boeen: true
+  aufstieg_wenn: "Abdeckung > 90 % ueber 100 Episoden"
+
+auswertung:                         # Werte fuers Dashboard
+  - gewichtete_abdeckung_prozent
+  - minuten_ohne_uplink_pro_hotspot
+  - abstuerze_leerer_akku
+  - drohnen_gleichzeitig_am_laden_max
+  - uebergaben_ohne_funkloch_prozent
+  - reserve_drohnen_im_schnitt
+
+alternative_leine:                  # optionaler Modus: Drohne am Kabel
+  aktiv: false
+  flugdauer: unbegrenzt
+  max_hoehe_m: 100
+  bewegungsradius_m: 0              # steht fest, kein Laden noetig

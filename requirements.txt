@@ -1,0 +1,6 @@
+# Laufzeit-Abhaengigkeiten der Schwarm-Simulation (Phase 1).
+# PyTorch mit CUDA bitte ueber den passenden Index installieren, z.B.:
+#   pip install torch --index-url https://download.pytorch.org/whl/cu124
+torch>=2.4
+numpy>=1.26
+matplotlib>=3.8

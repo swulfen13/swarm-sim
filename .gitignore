@@ -1,0 +1,29 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.ipynb_checkpoints/
+
+# --- Virtuelle Umgebung ---
+.venv/
+venv/
+
+# --- Trainierte Modelle & Checkpoints (gehoeren auf den Hugging Face Hub) ---
+checkpoints/
+*.pt
+*.pth
+*.ckpt
+
+# --- TensorBoard-Runs & Trainingslogs ---
+runs/
+out/*.log
+out/*.err
+
+# --- Replays (generierte Daten) ---
+replays/
+
+# --- Betriebssystem / Editor ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
