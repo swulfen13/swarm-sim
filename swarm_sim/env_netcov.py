@@ -56,7 +56,8 @@ def _rand_minutes(spec, gen, dev):
 
 class NetCovEnv:
     entity_dim = 7         # pos_xy(2)+alt(1)+vel_xy(2)+vz(1)+battery(1)
-    self_global_dim = 13   # dir_up(2)+d_up(1)+dir_st(2)+d_st(1)+dir_gap(2)+d_gap(1)+batt(1)+conn(1)+wind(2)
+    self_global_dim = 16   # dir_up(2)+d_up(1)+dir_st(2)+d_st(1)+dir_gap(2)+d_gap(1)+batt(1)+conn(1)+wind(2)
+                           # + exp4 Koordination: batt_rank(1)+frac_charging(1)+frac_below_reserve(1)
     team_global_dim = 3
 
     def __init__(self, mcfg: MissionConfig, num_envs: int, device: str = "cuda", seed: int = 0):
@@ -507,10 +508,24 @@ class NetCovEnv:
         wind_n = (self.wind + self.gust).unsqueeze(1).expand(self.E, self.A, 2) / max(self.max_speed, 1e-6)
 
         entities = torch.cat([pos_n, alt_n, vel_n, vz_n, batt_n], dim=-1)           # (E,A,7)
+
+        # --- exp4: lokale Koordinations-Features, die die Symmetrie brechen ---
+        # Eine geteilte Policy kann sich nur unterschiedlich verhalten, wenn jede
+        # Drohne unterschiedliche Werte sieht. Ohne das laden/versorgen alle gleichzeitig.
+        alive_cnt = self.alive.float().sum(1, keepdim=True).clamp(min=1)            # (E,1)
+        # Akku-Rang: Anteil lebender Teamkollegen mit NIEDRIGEREM Akku (0=schwaechste,~1=staerkste)
+        lower = (self.battery.unsqueeze(1) < self.battery.unsqueeze(2)) & self.alive.unsqueeze(1)  # (E,A,A)
+        batt_rank = (lower.float().sum(2) / alive_cnt).unsqueeze(-1)                # (E,A,1)
+        charging_now = self._charging_mask()                                       # (E,A) bool
+        frac_charging = (charging_now.float().sum(1, keepdim=True) / alive_cnt).unsqueeze(-1).expand(self.E, self.A, 1)
+        below = ((self.battery < self.reserve_pct) & self.alive).float()
+        frac_below = (below.sum(1, keepdim=True) / alive_cnt).unsqueeze(-1).expand(self.E, self.A, 1)
+
         self_global = torch.cat([
             dir_up, d_up / diag, dir_st, d_st / diag, dir_gap, d_gap / diag,
             batt_n, connected.float().unsqueeze(-1), wind_n,
-        ], dim=-1)                                                                  # (E,A,13)
+            batt_rank, frac_charging, frac_below,                                   # exp4 (+3)
+        ], dim=-1)                                                                  # (E,A,16)
 
         alive_f = self.alive.float()
         conn_col = (connected.float().sum(1, keepdim=True) / alive_f.sum(1, keepdim=True).clamp(min=1))
