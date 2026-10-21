@@ -10,6 +10,10 @@ Trainiert wird lokal auf einer RTX 4060 Ti mit **MAPPO** (Multi-Agent PPO) und
 Self-Play. Die komplette Physik und Funkausbreitung laufen vektorisiert auf der
 GPU, sodass **tausende Arenen parallel** simuliert werden (~19.000 Schritte/s).
 
+> 📖 **Alles von Grund auf verstehen:** [`PROJEKT_ERKLAERT.md`](PROJEKT_ERKLAERT.md)
+> erklärt das komplette Projekt – RL-Grundlagen, Architektur, jede Datei, die
+> Mission, das neuronale Netz und die Design-Entscheidungen – in einfachen Worten.
+
 ## Aktueller Stand
 
 Mehrere Umgebungen sind umgesetzt und trainierbar. Die Vision-Mission
