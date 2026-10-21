@@ -41,7 +41,26 @@ fehlt ein Mechanismus zur Aufteilung „du lädst / du versorgst".
 `sicherheitsreserve_prozent` 35, Staffel-Bonus 0; Curriculum `stufe_1.hotspots`
 4 → 1). Station steht `beim_hotspot` → dieselbe Drohne kann versorgen UND laden,
 der Ladezyklus wird entdeckbar; spätere Stufen ziehen die Hotspots wieder hoch.
-Testet NUR die Curriculum-Änderung. → Lauf gestartet.
+Testet NUR die Curriculum-Änderung. → **gescheitert, Sägezahn bleibt** — aber am
+wenigsten schlimm: served-Spitzen bis 70 %, Kollaps „nur" in 38 % (exp1 62 %,
+exp2 67 %). Die Aufgabe ist also klar lernbar; der Schwarm läuft trotzdem
+kollektiv leer.
+
+**Fazit nach der Leiter (exp1–exp3):** Reward-Shaping (Bonus/Strafe) und
+Vereinfachung (Curriculum) lösen den Sägezahn NICHT. Bestätigte Ursache:
+**Symmetrie ohne Rollenaufteilung.** Eine geteilte Policy + fast gleiche
+Beobachtungen ⇒ alle Drohnen entscheiden gleich ⇒ alle versorgen bis leer, dann
+alle laden. Es fehlt lokale Information, an der sich die *identische* Policy
+*unterschiedlich* verhalten kann.
+
+**Nächste Richtung (braucht Okay, da Beobachtungs-/Reward-Entscheidung):**
+- A) Symmetrie brechen über die Beobachtung: pro Drohne z. B. „mein Akku-Rang im
+  Team" / „Anteil Team lädt gerade" / „Anteil Team unter Reserve". Dann lernt die
+  geteilte Policy „bin ich unter den Schwächsten → laden, sonst versorgen"
+  (gestaffelte Rotation mit *einem* Netz, klassischer MARL-Fix).
+- B) Reward auf *Kontinuität*: den Einbruch der Abdeckung direkt bestrafen
+  (z. B. Minimum der Abdeckung über ein Zeitfenster), statt nur Pro-Schritt-Werte.
+- Loop hier gestoppt: Leiter abgearbeitet, weitere Hebel sind neue Entscheidungen.
 
 ---
 
