@@ -62,6 +62,30 @@ alle laden. Es fehlt lokale Information, an der sich die *identische* Policy
   (z. B. Minimum der Abdeckung über ein Zeitfenster), statt nur Pro-Schritt-Werte.
 - Loop hier gestoppt: Leiter abgearbeitet, weitere Hebel sind neue Entscheidungen.
 
+**exp4 – Symmetrie über Beobachtung brechen** (freigegeben nach der ersten Leiter):
+jede Drohne sieht jetzt Akku-Rang im Team, Anteil Team lädt, Anteil Team unter
+Reserve (`self_global_dim` 13 → 16). → **gescheitert, Sägezahn bleibt** (served
+5,9 %, Kollaps 52 %, Akku → 0, `ready` ~0,06). Kein Curriculum-Aufstieg.
+
+**DURCHBRUCH bei der Diagnose (eigentliche Ursache):** Beim Vergleich aller Läufe
+fiel die Periode auf: der „Sägezahn" wiederholt sich alle **~225 Updates** (run15:
+Erholung bei 700, 925, 1150, 1375). Das ist KEIN Trainingsrauschen, sondern **genau
+eine Episode**: `ep_steps = 12 min · 60 / dt(0.1s) = 7200 Schritte`, `rollout_len =
+32` → `7200 / 32 = 225 Updates pro Episode`. Der per-Update geloggte „Sägezahn" ist
+also EINE Episode, die abläuft: voller Akku beim Reset → versorgen → nach ~8 min
+(Akku-Laufzeit Stufe 1) kollektiv leer → kein Mid-Episode-Recovery → Reset.
+- Warum lädt niemand rechtzeitig nach? **Zeitskalen-Mismatch mit gamma.** gamma
+  0.997 → Kredit-Horizont ~1/(1−γ) = 333 Schritte = **~33 s**. Ein Lade-Zyklus
+  (hinfliegen, laden, später profitieren) dauert **Minuten** (Akku 8 min = 480 s).
+  Der diskontierte Nutzen des Ladens liegt ~15× jenseits des Horizonts → für den
+  Agenten quasi unsichtbar. Darum konnte KEIN Reward-Bonus/-Strafe und KEINE
+  Beobachtung es lösen: das Problem ist die Kredit-Zuweisung über die Zeit, nicht
+  der Anreiz oder die Information.
+- Kandidaten für die nächste Leiter (brauchen Okay): (1) gamma deutlich höher
+  (0.999 → ~100 s, 0.9995 → ~200 s), ggf. längere Rollouts; (2) Zeitskala der Sim
+  gröber (größeres dt / weniger Schritte pro Minute), damit der Zyklus in den
+  Horizont passt; (3) Kontinuitäts-Reward (Einbruch bestrafen) als Ergänzung.
+
 ---
 
 ## 2026-10-21 – Repo aufgesetzt, Stand dokumentiert
