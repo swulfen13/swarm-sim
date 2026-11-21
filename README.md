@@ -29,11 +29,18 @@ Mehrere Umgebungen sind umgesetzt und trainierbar. Die Vision-Mission
 | 7 Missionen | Funk-Relais (`env_relay.py`), **Netzabdeckung (`env_netcov.py`)** | 🔄 aktiv |
 
 **Offenes Problem (Trainingsstand):** Der Schwarm lernt die *Versorgung* gut,
-aber noch nicht das rechtzeitige *Nachladen*. Im Log zeigt sich ein Sägezahn:
-Abdeckung steigt auf ~30 %, fällt dann auf 0 %, wenn alle Akkus gleichzeitig
-leer sind, und erholt sich erst beim Episoden-Reset. Reward-Shaping und
-Curriculum dafür werden gerade iteriert (siehe `netzabdeckung_config.yaml` und
-`NOTES.md`).
+aber noch nicht das rechtzeitige, gestaffelte *Nachladen*. Im Log zeigt sich
+ein Sägezahn: Abdeckung steigt auf 30–80 %, fällt dann auf 0 %, wenn alle
+Akkus gleichzeitig leer sind, und erholt sich erst beim Episoden-Reset.
+
+6 Experimente mit Reward-Shaping und Curriculum (Staffel-Bonus, Reserve-Strafe,
+mildere Stufe 1, Symmetrie-Features, Horizont/Gamma-Fix, Blackout-Strafe)
+haben den Sägezahn bisher **nicht** gebrochen – bester Lauf (exp5, Horizont-Fix)
+liegt bei ⌀ 11,2 % Abdeckung, Spitzen bis 79 %, Kollaps in ~44 % der Updates.
+Reine Reward-Zusätze scheinen auf dem aktuellen Stufe-1-Setup ausgereizt;
+nächster Kandidat ist eine gröbere Zeitskala der Simulation, damit ein
+Lade-/Entlade-Zyklus überhaupt in den PPO-Horizont passt. Details in
+`netzabdeckung_config.yaml` und `NOTES.md`.
 
 ## Setup
 

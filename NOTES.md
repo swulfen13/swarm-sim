@@ -5,6 +5,38 @@ Lösungen · Offene Fragen.
 
 ---
 
+## 2026-11-21 – exp6-Ergebnis ausgewertet (Blackout-Strafe hilft nicht)
+
+**Was gemacht:** Den `exp6`-Lauf (Blackout-/Kontinuitätsstrafe, siehe unten)
+ausgewertet. Log zeigt: Lauf endete bereits bei Update 2700 von geplanten 3000
+(Checkpoint `netcov_update2700.pt`, danach nichts mehr) – kein Fehler im Log,
+vermutlich wurde der Prozess/das Terminal vor Fertigstellung beendet. Die
+Daten bis dahin reichen aber zur Bewertung.
+
+**Ergebnis (109 Messpunkte, Update 1–2700) vs. exp5 (81 Messpunkte):**
+
+| Metrik | exp5 (Horizont-Fix) | exp6 (+ Blackout-Strafe) |
+| --- | --- | --- |
+| served, Durchschnitt | 11,2 % | 10,8 % |
+| served, Spitze | 79,2 % | 72,3 % |
+| Kollaps-Anteil (served < 1 %) | 44,4 % | 48,6 % |
+
+**Fazit:** Die Blackout-Kontinuitätsstrafe hat den Sägezahn **nicht** gebrochen
+– Durchschnitt, Spitzenwert und Kollaps-Anteil sind gegenüber exp5 gleich bis
+leicht schlechter. Reine Reward-Zusätze auf dem aktuellen Stufe-1-Setup
+scheinen ausgereizt. Die drei in exp5 genannten Kandidaten (Horizont/Gamma
+weiter erhöhen, Zeitskala der Simulation vergröbern, oder ein strukturelles
+Rollenaufteilungs-Signal statt nur Reward) sind weiter offen – von diesen wirkt
+„Zeitskala gröber" am vielversprechendsten, weil exp5 schon gezeigt hat, dass
+der Horizont (~200 s) immer noch deutlich unter der Akkulaufzeit (480 s) liegt
+und eine höhere Gamma allein zu viel Varianz bringt.
+
+**Offene Frage / nächster Schritt (braucht Okay):** Zeitskala (`dt` bzw.
+Schritte pro Minute) vergröbern, damit ein voller Lade-/Entlade-Zyklus in den
+PPO-Horizont passt, statt nur weiter an Reward-Gewichten zu drehen.
+
+---
+
 ## 2026-10-21 (abends) – Auto-Loop: Experimente gegen den Sägezahn
 
 Ziel: der Schwarm soll gestaffeltes Nachladen lernen (nicht alle Akkus
